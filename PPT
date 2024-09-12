@@ -1,0 +1,62 @@
+import pandas as pd
+import pywhatkit as pwk
+import os
+import time
+import pyautogui
+
+# Caminhos dos arquivos
+xlsx_path = r"C:\Users\Beep Saude.BEEP1441\OneDrive\Documentos\Sales\RPA\Campanhas.xlsx"
+output_folder = r"C:\Users\Beep Saude.BEEP1441\OneDrive\Documentos\Sales\RPA\Cards_Campanhas"
+
+# Carregar a planilha Excel
+df = pd.read_excel(xlsx_path)
+
+# Função para enviar mensagens no WhatsApp
+def send_whatsapp_message(phone_number, image_file, name, code):
+    phone_with_country_code = f"+55{phone_number}"
+    message = (
+        f"Olá, Dr(a). {name}!\n\n"
+        f"Estendemos a duração do desconto no Pacote Meningites em Brasília e Campinas.\n\n"
+        f"Basta usar o código* MENINGO70 e garantir a condição especial! 😉\n\n"
+        f"📊 A meningite bacteriana é fatal em 10% dos casos no Brasil e pode ser prevenida com as vacinas meningocócicas ACWY e B, que fazem parte do Pacote Meningites.\n\n"
+        f"Compartilhe com os seus pacientes e espalhe saúde!\n\n"
+        f"*Válido para Brasília e Campinas. Valor promocional referente a uma dose de cada vacina Pfizer. "
+        f"Os preços podem variar conforme a região. Veja condições no site."
+    )
+    
+    try:
+        print(f"Enviando mensagem para Dr(a). {name} ({phone_with_country_code})...")
+        pwk.sendwhats_image(phone_with_country_code, image_file, caption=message, wait_time=20)
+        print(f"Mensagem enviada para Dr(a). {name} ({phone_with_country_code}) com sucesso!")
+        
+        # Esperar alguns segundos para garantir que a mensagem foi enviada
+        time.sleep(10)
+        
+        # Fechar a aba do navegador (simulando Ctrl + W)
+        pyautogui.hotkey('ctrl', 'w')
+        
+        # Aguardar um tempo suficiente antes de enviar a próxima mensagem
+        time.sleep(5)
+        
+    except Exception as e:
+        print(f"Erro ao enviar mensagem para Dr(a). {name} ({phone_with_country_code}): {e}")
+
+# Loop pelos dados do DataFrame
+for index, row in df.iterrows():
+    code = row['código original']
+    phone = row['Fone 1']
+    name = row['Nome']
+    
+    # Caminho completo do arquivo png
+    image_file_path = os.path.join(output_folder, f"{code}.png")
+    
+    # Verificar se o arquivo png existe
+    if os.path.exists(image_file_path):
+        # Enviar a imagem pelo WhatsApp
+        send_whatsapp_message(phone, image_file_path, name, code)
+        # Aguardar um pouco antes de enviar a próxima mensagem para evitar bloqueios
+        time.sleep(5)
+    else:
+        print(f"Arquivo {image_file_path} não encontrado.")
+
+print("Processo concluído!")
